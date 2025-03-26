@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\employeeManagment;
 use App\Http\Controllers\performncecontroller;
 use App\Http\Controllers\attendancemanagment;
+use App\Http\Controllers\EmployeePaymentController;
+
 
 use App\Http\Controllers\EventController;
 
@@ -24,7 +26,10 @@ Route::middleware('auth')->group(function () {
 
     // Admin-Only Routes
     Route::middleware('admin')->group(function () {
-        // Employee Management Routes
+        Route::get('/employee-payments', [EmployeePaymentController::class, 'index']);
+Route::post('/employee-payments/pay', [EmployeePaymentController::class, 'pay']);
+Route::get('/payment/callback', [EmployeePaymentController::class, 'callback'])->name('payment.callback');
+Route::get('/payment/return', [EmployeePaymentController::class, 'return'])->name('payment.return');
         Route::prefix('panel')->group(function () {
             Route::controller(employeeManagment::class)->group(function () {
                 Route::get('addemployee', 'add')->name('employee.add');
@@ -68,9 +73,9 @@ Route::middleware('auth')->group(function () {
 
     // User-Only Routes
     Route::middleware('user')->group(function () {
-        // Example user-specific route
+       
         Route::get('user/profile', function () {
-            return view('user.profile'); // Blade view for user profile
+            return view('user.profile'); 
         })->name('user.profile');
     });
 });

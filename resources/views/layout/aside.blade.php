@@ -89,7 +89,14 @@
     <i class="bi bi-calendar-event"></i>
       <span>Event board</span>
     </a>
-  </li><!-- End F.A.Q Page Nav -->
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link collapsed" href="/employee-payments">
+    <i class="bi bi-cash-coin"></i>
+      <span>Payment Board</span>
+    </a>
+  </li>
 
 
   <li class="nav-item">
