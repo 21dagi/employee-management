@@ -952,7 +952,6 @@
   <script src="{{ url('') }}/assets_landing/vendor/swiper/swiper-bundle.min.js"></script>
   <script src="{{ url('') }}/assets_landing/vendor/purecounter/purecounter_vanilla.js"></script>
 
-  <!-- Main JS File -->
   <script src="{{ url('') }}/assets_landing/js/main.js"></script>
 
 </body>
