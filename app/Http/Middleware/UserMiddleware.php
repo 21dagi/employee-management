@@ -15,12 +15,17 @@ class UserMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && Auth::user()->role_id === 2) { // Assuming role_id 2 is for user
+        if (Auth::check() && $request->session()->get('user_role') === 2) {
             return $next($request);
         }
-
-        return redirect('/')->with('error', 'You do not have permission to access this page.');
+    
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        return redirect('/')->with('error', 'Unauthorized access');
     }
+    
 }

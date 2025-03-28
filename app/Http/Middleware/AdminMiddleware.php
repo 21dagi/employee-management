@@ -6,23 +6,23 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Log; // Added missing import
 
 class AdminMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next): Response
-    {   if (Auth::check() && Auth::user()->role_id === 1) { // Assuming role_id 1 is for admin
-        return $next($request);
-    }
-
-        else{
-            Auth::logout();
-            return redirect(url(''));
+    public function handle(Request $request, Closure $next)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login.signin')->with('error', 'Please login first');
         }
+    
+        $user = Auth::user();
+        if ($user->role_id === 1) { // 1 = admin role
+            return $next($request);
+        }
+    
+        Auth::logout();
+        $request->session()->invalidate();
+        return redirect('/')->with('error', 'Administrator access required');
     }
 }

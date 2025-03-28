@@ -12,40 +12,57 @@ class attendancemanagment extends Controller
 {
     public function record_view()
     {
-        // Fetch all employees with their position names
         $employees = Employee::join('positions', 'employees.position_id', '=', 'positions.id')
             ->select(
                 'employees.id',
                 'employees.first_name',
                 'employees.last_name',
-                'positions.position_name as position', // Fetch position name from positions table
+                'positions.position_name as position',
                 'employees.phone'
             )
             ->orderBy('employees.first_name')
             ->get();
     
-        // Pass the employees to the view
-        return view('admin.attendance_record', compact('employees'));
-    }
-
-
+        // Escape output but keep as objects for the view
+        $employees->each(function ($employee) {
+            $employee->first_name = e($employee->first_name);
+            $employee->last_name = e($employee->last_name);
+            $employee->position = e($employee->position);
+            $employee->phone = e($employee->phone);
+            return $employee;
+        });
     
+        return response()
+            ->view('admin.attendance_record', compact('employees'))
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('X-Frame-Options', 'DENY')
+            ->header('X-XSS-Protection', '1; mode=block');
+    }
     public function record(Request $request)
     {
         // Validate the request
-        $request->validate([
-            'date' => 'required|date',
-            'employees' => 'required|array',
-            'employees.*' => 'integer|exists:employees,id', // Validate each employee ID
+        $validated = $request->validate([
+            'date' => 'required|date|before_or_equal:today',
+            'employees' => 'required|array|min:1',
+            'employees.*' => 'integer|exists:employees,id',
         ]);
     
         // Get the date and employee IDs from the request
-        $date = $request->input('date');
-        $employeeIds = $request->input('employees');
+        $date = $validated['date'];
+        $employeeIds = $validated['employees'];
     
         try {
             // Start a database transaction
             DB::beginTransaction();
+    
+            // Check for existing records (optional improvement)
+            $existingRecords = Attendance::whereIn('employee_id', $employeeIds)
+                ->where('_date', $date)
+                ->count();
+    
+            if ($existingRecords > 0) {
+                throw new \Exception('Attendance for one or more employees already recorded for this date.');
+            }
     
             // Record attendance for each selected employee
             foreach ($employeeIds as $employeeId) {
@@ -59,42 +76,85 @@ class attendancemanagment extends Controller
             // Commit the transaction
             DB::commit();
     
-            return response()->json(['success' => true]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Attendance recorded successfully.'
+            ]);
+    
         } catch (\Exception $e) {
             // Rollback the transaction on error
             DB::rollBack();
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            
+            \Log::error('Attendance recording failed: ' . $e->getMessage(), [
+                'date' => $date,
+                'employees' => $employeeIds,
+                'ip' => $request->ip()
+            ]);
+    
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage() // Return actual error message for debugging
+            ], 500);
         }
     }
     public function report_view()
-    {
+{
+    $employees = Employee::with('attendance')->get()->map(function($employee) {
+        $employee->name = e($employee->name);
+        return $employee;
+    });
 
-        $employees = Employee::with('attendance')->get();
+    $dates = Attendance::select('_date')
+        ->distinct()
+        ->orderBy('_date', 'asc')
+        ->get()
+        ->map(function($date) {
+            $date->_date = e($date->_date);
+            return $date;
+        });
 
-        // Get unique dates from the attendance table
-        $dates = Attendance::select('_date')->distinct()->orderBy('_date', 'asc')->get();
+    return response()
+        ->view('admin.attendance_report', compact('employees', 'dates'))
+        ->header('X-Content-Type-Options', 'nosniff')
+        ->header('X-Frame-Options', 'DENY')
+        ->header('X-XSS-Protection', '1; mode=block');
+}
 
-        return view('admin.attendance_report', compact('employees', 'dates'));
-    }
-    public function filter(Request $request)
-    {
-        $year = $request->input('year');
-        $month = $request->input('month');
+public function filter(Request $request)
+{
+    $validated = $request->validate([
+        'year' => ['required', 'integer', 'digits:4', 'min:2000', 'max:'.(date('Y')+1)],
+        'month' => ['required', 'integer', 'min:1', 'max:12']
+    ]);
 
-        // Fetch employees with attendance records for the selected year and month
-        $employees = Employee::with(['attendance' => function ($query) use ($year, $month) {
-            $query->whereYear('_date', $year)->whereMonth('_date', $month);
-        }])->get();
+    $year = (int)$validated['year'];
+    $month = (int)$validated['month'];
 
-        // Get unique dates for the selected year and month
-        $dates = Attendance::whereYear('_date', $year)
-            ->whereMonth('_date', $month)
-            ->select('_date')
-            ->distinct()
-            ->orderBy('_date', 'asc')
-            ->get();
+    $employees = Employee::with(['attendance' => function ($query) use ($year, $month) {
+        $query->whereYear('_date', $year)
+              ->whereMonth('_date', $month);
+    }])->get()->map(function($employee) {
+        $employee->name = e($employee->name);
+        return $employee;
+    });
 
-        return view('admin.attendance_report', compact('employees', 'dates'));
-    }
+    $dates = Attendance::whereYear('_date', $year)
+        ->whereMonth('_date', $month)
+        ->select('_date')
+        ->distinct()
+        ->orderBy('_date', 'asc')
+        ->get()
+        ->map(function($date) {
+            $date->_date = e($date->_date);
+            return $date;
+        });
+
+    return response()
+        ->view('admin.attendance_report', compact('employees', 'dates'))
+        ->header('Content-Security-Policy', "default-src 'self'")
+        ->header('X-Content-Type-Options', 'nosniff')
+        ->header('X-Frame-Options', 'DENY')
+        ->header('X-XSS-Protection', '1; mode=block');
+}
     
 }

@@ -1,50 +1,76 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Employee; 
+use App\Models\Employee;
 use App\Models\User;
+
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log; 
+
+
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class employeeManagment extends Controller
 {
-    public function add(){
+    public function __construct()
+    {
+        $this->middleware('auth');
+       
+    }
+
+    public function add()
+    {
+        if (!Auth::user()->isAdmin()) { // Assuming you have isAdmin() method
+            abort(403, 'Unauthorized action');
+        }
         return view("admin.add");
     }
-    public function list(){
-        $employees = Employee::all();
 
-      
-      
-        return view("admin.list_employ",compact('employees'));
+    public function list()
+    {
+        if (!Auth::user()->isAdmin()) {
+            abort(403, 'Unauthorized action');
+        }
+        
+        $employees = Employee::paginate(10);
+        return view("admin.list_employ", compact('employees'));
     }
- 
+
     public function update(Request $request)
     {
-        // Validate the request data
         $request->validate([
+            'id' => 'required|integer|exists:employees,id',
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
-            'email' => 'required|email|unique:employees,email,' . $request->id,
+            'email' => 'required|email|unique:employees,email,'.$request->id,
             'phone' => 'nullable|string|max:20',
             'position_id' => 'required|integer',
         ]);
-    
-        // Find the employee and update their details
+
+        if (!Auth::user()->isAdmin()) {
+            abort(403, 'Unauthorized action');
+        }
+
         $employee = Employee::find($request->id);
         $employee->update($request->all());
-    
+
         return response()->json(['message' => 'Employee updated successfully']);
     }
-public function destroy($id)
-{
-    $employee = Employee::find($id);
-    $employee->delete();
-    return response()->json(['message' => 'Employee deleted successfully']);
-}
+
+    public function destroy($id)
+    {
+        if (!Auth::user()->isAdmin()) {
+            abort(403, 'Unauthorized action');
+        }
+
+        $employee = Employee::find($id);
+        $employee->delete();
+
+        return response()->json(['message' => 'Employee deleted successfully']);
+    }
     public function register(Request $request){
         try {
             // Validate the request data

@@ -1,9 +1,17 @@
 <?php
 
 namespace App\Providers;
-
-// use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Employee;
+use App\Models\Performance;
+use App\Models\EventBoard;
+
+use App\Policies\EmployeePolicy;
+use App\Policies\EventBoardPolicy;
+
+use App\Policies\PerformancePolicy;
+
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -12,13 +20,14 @@ class AuthServiceProvider extends ServiceProvider
      *
      * @var array<class-string, class-string>
      */
+
     protected $policies = [
-        //
+        Performance::class => PerformancePolicy::class,
+        Employee::class => EmployeePolicy::class,
+        EventBoard::class => EventBoardPolicy::class,
     ];
 
-    /**
-     * Register any authentication / authorization services.
-     */
+
     public function boot(): void
     {
         //

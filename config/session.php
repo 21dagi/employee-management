@@ -33,7 +33,13 @@ return [
 
     'lifetime' => env('SESSION_LIFETIME', 120),
 
-    'expire_on_close' => false,
+'expire_on_close' => true,
+'encrypt' => true, // Encrypt session data
+'cookie' => '__Host-session', // Secure cookie name
+'secure' => true, // Only send cookies over HTTPS
+'http_only' => true, // Prevent JavaScript cookie access
+
+   
 
     /*
     |--------------------------------------------------------------------------
@@ -46,7 +52,6 @@ return [
     |
     */
 
-    'encrypt' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -126,11 +131,7 @@ return [
     |
     */
 
-    'cookie' => env(
-        'SESSION_COOKIE',
-        Str::slug(env('APP_NAME', 'laravel'), '_').'_session'
-    ),
-
+  
     /*
     |--------------------------------------------------------------------------
     | Session Cookie Path
@@ -168,7 +169,6 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
 
     /*
     |--------------------------------------------------------------------------

@@ -46,6 +46,11 @@ class User extends Authenticatable
         return $this->belongsTo(Employee::class, 'employee_id');
     }
 
+    public function isAdmin()
+{
+    return $this->role_id === 1; // Assuming 1 is admin role
+}
+
     /**
      * Define the relationship with the Role model.
      */
