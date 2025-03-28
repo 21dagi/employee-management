@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     AuthController,
     DashboardController,
-    // ... your other controllers
+  
 };
 // CSP Reporting
 Route::post('/csp-reports', function(Request $request) {

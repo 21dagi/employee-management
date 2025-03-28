@@ -73,7 +73,7 @@ class employeeManagment extends Controller
     }
     public function register(Request $request){
         try {
-            // Validate the request data
+            
                 $request->validate([
                     'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                     'position' => 'required|integer',

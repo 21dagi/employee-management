@@ -7,7 +7,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <div class="container mt-4">
-    <!-- Filter Section -->
+
     <div class="row mb-4">
         <div class="col-md-3">
             <label for="year" class="form-label">Year</label>
@@ -62,7 +62,7 @@
 </div>
     <div class="card shadow-sm">
         <div class="card-body">
-            <!-- Select All Checkbox -->
+           
             <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" id="selectAll">
                 <label class="form-check-label" for="selectAll">
@@ -89,7 +89,7 @@
         <tr class="align-middle employee-row">
             <td>{{ $loop->iteration }}</td>
             <td class="employee-name">{{ $employee->first_name }} {{ $employee->last_name }}</td>
-            <td>{{ $employee->position }}</td> <!-- Display position name -->
+            <td>{{ $employee->position }}</td> 
             <td>{{ $employee->phone }}</td>
             <td>
                 <input class="form-check-input attendance-checkbox border" type="checkbox" name="attendance[]" value="{{ $employee->id }}">

@@ -8,13 +8,13 @@ use App\Http\Controllers\{
     EventController
 };
 
-// Employee Payments (exact URLs as original)
+// Employee Payment
 Route::get('/employee-payments', [EmployeePaymentController::class, 'index']);
 Route::post('/employee-payments/pay', [EmployeePaymentController::class, 'pay']);
 Route::get('/payment/callback', [EmployeePaymentController::class, 'callback'])->name('payment.callback');
 Route::get('/payment/return', [EmployeePaymentController::class, 'return'])->name('payment.return');
 
-// Panel routes (maintaining exact URLs)
+// Panel routes 
 Route::prefix('panel')->middleware(['auth'])->group(function() {
     // Employee Management
     Route::controller(employeeManagment::class)->group(function() {
